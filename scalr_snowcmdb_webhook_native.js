@@ -1,10 +1,8 @@
 (function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
 	
-	gs.info('running1.....');
 	var authkey = 'xxxxx';
 	var scalr_sig = request.getHeader('X-Signature');
-	var scalr_date = request.getHeader('X-Date');
-	gs.info('running2.....');	
+	var scalr_date = request.getHeader('Date');
 	var scalr_gdate = new GlideDate();
 	scalr_gdate.setValue(convertDateToGDT(scalr_date));
 	var scalr_gtime = new GlideTime();
@@ -18,12 +16,10 @@
 	if (scalr_min.length < 2) {
 		scalr_min = '0' + scalr_min;
 	}
-	gs.info('running3.....');	
 	var gdt = new GlideDateTime();	
 	var scalr_gdt = new GlideDateTime(scalr_gdate.getByFormat('yyyy-MM-dd') + " " + scalr_hour + ':' + scalr_min + ':' + scalr_gtime.getSeconds()); 
 	var diff = new GlideDuration();
 	diff = GlideDateTime.subtract(scalr_gdt, gdt);
-	gs.info('running4.....');	
 	if(diff.getNumericValue()/1000 > 300){
 		return 403;
 	}
@@ -31,11 +27,9 @@
 	gs.info('running.....');
 	info = request.body.dataString;
 	var data = info + scalr_date;
-	gs.info("Payload + Date:" + data);
 	
 	var signature = new CryptoJS.HmacSHA1(data, authkey);
 
-	gs.info("SNOW Sig: " + signature + "    Scalr sig:" + scalr_sig);
 	if(scalr_sig != signature) {
 		gs.info("Signature Mismatch");
 		return 403;
@@ -45,11 +39,11 @@
 
 function update(info) {
 	var parsed = new global.JSON().decode(info);
-	var gr = new GlideRecord('x_301778_scalr_cmd_u_scalr_servers');
+	var gr = new GlideRecord('SCALR_SERVER_TABLE_NAME');
 	
 	gr.initialize();
 	if (parsed.eventName != "HostUp") {
-		gr.get('u_id', parsed.data.SCALR_SERVER_ID);
+		gr.get('SCALR_SERVER_ID_COLUMN', parsed.data.SCALR_SERVER_ID);
 	}
 	else {
 		gr.u_id = parsed.data.SCALR_SERVER_ID;
